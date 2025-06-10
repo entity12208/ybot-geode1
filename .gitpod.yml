@@ -1,0 +1,32 @@
+image: gitpod/workspace-full
+
+tasks:
+  - name: Setup SDK, CLI and build mod
+    init: |
+      sudo apt update
+      sudo apt install -y cmake build-essential clang git unzip curl
+      # Clone Geode SDK if not exists
+      if [ ! -d ~/.local/share/Geode/sdk ]; then
+        git clone https://github.com/geode-sdk/sdk.git ~/.local/share/Geode/sdk
+      fi
+      # Download latest Geode CLI for Linux (x86_64)
+      CLI_ZIP_URL=$(curl -s https://api.github.com/repos/geode-sdk/cli/releases/latest | grep browser_download_url | grep linux-x86_64.zip | cut -d '"' -f 4)
+      curl -L $CLI_ZIP_URL -o geode-cli.zip
+      unzip -o geode-cli.zip geode
+      chmod +x geode
+      sudo mv geode /usr/local/bin/
+      rm geode-cli.zip
+      # Build mod
+      rm -rf build
+      mkdir build
+      cd build
+      cmake .. -DGeode_DIR=$HOME/.local/share/Geode/sdk/cmake
+      make
+    command: |
+      echo "Setup done! You can now run 'geode' from anywhere."
+      echo "Build complete! Your .geode file is in build/"
+      
+vscode:
+  extensions:
+    - ms-vscode.cpptools
+    - ms-vscode.cmake-tools
